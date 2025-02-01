@@ -7,18 +7,46 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map { height: 600px; width: 100%; }
-        .legend {
+        .menu-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
             background: white;
             padding: 10px;
+            cursor: pointer;
+            z-index: 1000;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            font-size: 12px;
+        }
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background: white;
+            box-shadow: 2px 0px 5px rgba(0,0,0,0.5);
+            padding: 10px;
+            transition: left 0.3s ease;
+            z-index: 999;
+        }
+        .side-menu.open {
+            left: 0;
+        }
+        .side-menu button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
-    <h2>LA County GIS Data Layers</h2>
     <div id="map"></div>
-    <div id="buttons"></div>
+    <div class="menu-button" onclick="toggleMenu()">☰</div>
+    <div id="sideMenu" class="side-menu">
+        <h3>Toggle Layers</h3>
+        <div id="buttons"></div>
+    </div>
     
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
@@ -34,7 +62,14 @@
         const layers = {};
         const markerCluster = L.markerClusterGroup();
         const colorOptions = ['#ff0000', '#0000ff', '#00ff00', '#ff00ff'];
-        const dataFiles = ['sewer.geojson', 'watershed.geojson', 'utility.geojson'];
+        const dataFiles = [
+            'sewer.geojson',
+            'watershed.geojson',
+            'utility.geojson',
+            'elementary-schools.geojson',
+            'middle-schools.geojson',
+            'high-schools.geojson'
+        ];
 
         async function loadGeoJSON(url, color) {
             const response = await fetch(url);
@@ -76,6 +111,11 @@
                 buttonContainer.appendChild(button);
                 addLayer(layerName, file, colorOptions[index % colorOptions.length]);
             });
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            menu.classList.toggle('open');
         }
 
         createLayerButtons();
