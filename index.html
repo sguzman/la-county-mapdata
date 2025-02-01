@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LA County GIS Data Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 600px; width: 100%; }
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h2>LA County GIS Data Layers</h2>
+    <div id="map"></div>
+    <div id="buttons"></div>
+    
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    
+    <script>
+        const map = L.map('map').setView([34.0522, -118.2437], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        const layers = {};
+        const markerCluster = L.markerClusterGroup();
+        const colorOptions = ['#ff0000', '#0000ff', '#00ff00', '#ff00ff'];
+        const dataFiles = ['sewer.geojson', 'watershed.geojson', 'utility.geojson'];
+
+        async function loadGeoJSON(url, color) {
+            const response = await fetch(url);
+            const data = await response.json();
+            return L.geoJSON(data, {
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {
+                        radius: 5,
+                        fillColor: color,
+                        color: '#000',
+                        weight: 1,
+                        fillOpacity: 0.6
+                    });
+                },
+                style: () => ({ color, weight: 2, fillOpacity: 0.4 })
+            });
+        }
+
+        async function addLayer(layerName, fileName, color) {
+            const geojsonURL = `data/${fileName}`;
+            layers[layerName] = await loadGeoJSON(geojsonURL, color);
+            map.addLayer(layers[layerName]);
+        }
+
+        function toggleLayer(layerName) {
+            if (map.hasLayer(layers[layerName])) {
+                map.removeLayer(layers[layerName]);
+            } else {
+                map.addLayer(layers[layerName]);
+            }
+        }
+
+        function createLayerButtons() {
+            const buttonContainer = document.getElementById('buttons');
+            dataFiles.forEach((file, index) => {
+                const layerName = file.split('.')[0];
+                const button = document.createElement('button');
+                button.innerText = `Toggle ${layerName}`;
+                button.onclick = () => toggleLayer(layerName);
+                buttonContainer.appendChild(button);
+                addLayer(layerName, file, colorOptions[index % colorOptions.length]);
+            });
+        }
+
+        createLayerButtons();
+    </script>
+</body>
+</html>
