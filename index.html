@@ -56,7 +56,6 @@
         async function addLayer(layerName, fileName, color) {
             const geojsonURL = `data/${fileName}`;
             layers[layerName] = await loadGeoJSON(geojsonURL, color);
-            map.addLayer(layers[layerName]);
         }
 
         function toggleLayer(layerName) {
