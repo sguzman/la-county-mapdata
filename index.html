@@ -38,11 +38,23 @@
             width: 100%;
             margin: 5px 0;
         }
+        .locate-button {
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 1000;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <div class="menu-button" onclick="toggleMenu()">☰</div>
+    <div class="locate-button" onclick="locateUser()">📍 Locate Me</div>
     <div id="sideMenu" class="side-menu">
         <h3>Toggle Layers</h3>
         <div id="buttons"></div>
@@ -59,6 +71,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
         
+        let userMarker;
         const layers = {};
         const markerCluster = L.markerClusterGroup();
         const colorOptions = ['#ff0000', '#0000ff', '#00ff00', '#ff00ff'];
@@ -116,6 +129,30 @@
         function toggleMenu() {
             const menu = document.getElementById('sideMenu');
             menu.classList.toggle('open');
+        }
+
+        function locateUser() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { latitude, longitude } = position.coords;
+                    if (userMarker) {
+                        userMarker.setLatLng([latitude, longitude]);
+                    } else {
+                        userMarker = L.circleMarker([latitude, longitude], {
+                            radius: 7,
+                            fillColor: 'blue',
+                            color: '#000',
+                            weight: 1,
+                            fillOpacity: 0.8
+                        }).addTo(map);
+                    }
+                    map.setView([latitude, longitude], 14);
+                }, error => {
+                    alert("Unable to retrieve location.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
         }
 
         createLayerButtons();
